@@ -1,16 +1,11 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
+import bot3RLNav
+import gym
+from gym.utils.env_checker import check_env
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    env = gym.make('bot3RLNav/World-v0', map_file="gray.jpg")
+    check_env(env)
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
