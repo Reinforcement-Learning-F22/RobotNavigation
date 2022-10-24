@@ -1,15 +1,15 @@
 ## Introduction
-<img src="map.jpg" width="50%" alt="Image of World">
+<img src="data/map.jpg" width="50%" alt="Image of World">
 
 Given the world shown above, navigate robot within the gray areas, within the bounds of the green pillars and black 
 walls. The white circles indicates obstacles. 
 
-<img src="gray.jpg" width="50%" alt="Gray Image of World">
+<img src="data/gray.jpg" width="50%" alt="Gray Image of World">
 
 We converted the original map to a grayscale version using computer vision techniques. Now the white space indicates 
 movable areas while the black circles within the wall indicates the obstacles. See the file `rl_map.ipynb` for details.
 
-<img src="world_with_robot.png" width="50%" alt="Image of World with Robot">
+<img src="data/world_with_robot.png" width="50%" alt="Image of World with Robot">
 
 We design our agent (_robot_) to have a certain diameter with a pose (x, y, theta). The agent is indicated by the red 
 spot in the image above.
