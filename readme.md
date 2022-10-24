@@ -18,7 +18,7 @@ With this background information do we build our world having the following addi
 1. Our observation space given by _x_, _y_ and _theta_ indicating the robot's current pose and the target position specified by its _x_ and _y_ coordinates. 
 2. _x_ and _y_ have a range of (0 to the maximum _x_ & _y_ coordinates of the world), while theta has a range of (`-pi` to `pi`)
 3. The action space is given by the linear (`v`) and angular velocity (`w`) of the robot.
-4. `v` and `w` are designed to be continous between _0_ and _10_. Ideally they should be between _0_ and _1_. We will subsequently change this implementation.
+4. `v` and `w` are designed to be continous between _0_ to _1_ for `v` and _-1_ to _1_ for `w`.
 5. The initial robot pose and the target pose are initialized randomly within the movable area, with only two constraints.
    1. The robot pose and the target pose should not be equivalent
    2. The robot pose and the target pose should not be on the walls or obstacles.

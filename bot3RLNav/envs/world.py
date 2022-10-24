@@ -33,8 +33,8 @@ class World(gym.Env):
         )
         self.action_space = spaces.Dict(
             {
-                "v": spaces.Box(0, 10, shape=(1,), dtype=float),
-                "w": spaces.Box(0, 10, shape=(1,), dtype=float)
+                "v": spaces.Box(0, 1, shape=(1,), dtype=float),
+                "w": spaces.Box(-1, 1, shape=(1,), dtype=float)
             }
         )
 
