@@ -69,3 +69,10 @@ After registration, our custom World environment can be created with
 env = gym.make('id')
 ```
 See the mentioned `__init__` files for details.
+
+
+## References
+1. [Custom Environment](https://www.gymlibrary.dev/content/environment_creation/)
+2. [Spaces](https://www.gymlibrary.dev/api/spaces/)
+3. [Gym Github](https://github.com/openai/gym)
+4. [Markdown](https://daringfireball.net/projects/markdown/)
