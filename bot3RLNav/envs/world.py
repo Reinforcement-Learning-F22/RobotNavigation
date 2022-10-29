@@ -111,14 +111,26 @@ class World(gym.Env):
     def get_coordinates(self):
         """
         Get random point (x, y) within movable region.
-        Todo: this values can get outside of circle, works in a box manner for now.
+        Randomly take `x` along the diameter of the circle of the movable region,
+        Take `y` based on how far `x` is from the centre of the circle.
+        Particularly we use the distance of `x` from either ends of the circle,
+        to calculate the radius within which `y` can be chosen.
 
-        :return:
+        :return: x, y
         """
         x = self.np_random.integers(self.center[0] - self.movable_radius,
                                     self.center[0] + self.movable_radius, size=1, dtype=int)
-        y = self.np_random.integers(self.center[1] - self.movable_radius,
-                                    self.center[1] + self.movable_radius, size=1, dtype=int)
+        # is x on the left, middle or right of centre point?
+        if x < self.center[0]:
+            # left
+            radius = (self.center[0] - self.movable_radius) + x
+        elif x > self.center[0]:
+            # right
+            radius = (self.center[0] + self.movable_radius) - x
+        else:
+            # middle
+            radius = self.movable_radius
+        y = self.np_random.integers(self.center[1] - radius, self.center[1] + radius, size=1, dtype=int)
         return x, y
 
     # ----------------------------------------------------------------------
