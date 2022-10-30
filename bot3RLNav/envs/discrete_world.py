@@ -45,7 +45,7 @@ class DiscreteWorld(gym.Env):
                 "target": spaces.Box(low=np.array([0, 0]), high=np.array([x, y]), dtype=int),
             }
         )
-        self.action_space = spaces.Discrete(len(RobotNavActions.action_num_to_str))
+        self.action_space = spaces.Discrete(len(RobotNavActions.strActions))
 
         self.render_mode = None
 
