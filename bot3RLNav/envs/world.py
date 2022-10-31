@@ -24,7 +24,7 @@ class World(gym.Env):
 
         self.movable_radius = self.center[0] - 75
         self.observation_space = spaces.Dict(
-           {
+            {
                 "x": spaces.Box(0, x, shape=(1,), dtype=float),
                 "y": spaces.Box(0, y, shape=(1,), dtype=float),
                 "theta": spaces.Box(-np.pi, np.pi, shape=(1,), dtype=float),
@@ -56,7 +56,7 @@ class World(gym.Env):
         """
         x, y, theta = self._agent_location
         return {"x": x, "y": y, "theta": theta, "target": self._target_location}
-        #return [ x,  y, theta, self._target_location]
+        # return [ x,  y, theta, self._target_location]
 
     # ----------------------------------------------------------------------
     def _get_info(self):
@@ -150,19 +150,18 @@ class World(gym.Env):
 
         self._agent_location = np.array([x, y, theta])
 
+        done, info, observation, reward = self.get_data(x, y)
+        return observation, reward, done, info
+
+    def get_data(self, x, y):
         info = self._get_info()
-
         distance = info["distance"][0]
-
         reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -1.0
-
         observation = self._get_obs()
-
         done = bool((distance <= self.tolerance) or (reward < 0))
-
         if self.render_mode == "human":
             self._render_frame()
-        return observation, reward, done, info
+        return done, info, observation, reward
 
     def render(self, mode="human"):
         pass
@@ -211,7 +210,7 @@ class World(gym.Env):
     @staticmethod
     def wrap_to_pi(theta: float):
         """"""
-        x, max_ = theta + np.pi, 2*np.pi
+        x, max_ = theta + np.pi, 2 * np.pi
         return -np.pi + ((max_ + (x % max_)) % max_)
 
 
@@ -249,18 +248,8 @@ class World1(World):
 
         self._agent_location = np.array([x, y, theta])
 
-        info = self._get_info()
+        done, info, observation, reward = self.get_data(x, y)
 
-        distance = info["distance"][0]
-
-        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -1.0
-
-        observation = self._get_obs()
-
-        done = bool((distance <= self.tolerance) or (reward < 0))
-
-        if self.render_mode == "human":
-            self._render_frame()
         return observation, reward, done, info
 
 
@@ -271,23 +260,23 @@ class DiscreteWorld(World1):
     def __init__(self, map_file: str):
         super().__init__(map_file)
         self.strActions = {
-            0 : 'Forward',
-            1 : 'Left Turn',
-            2 : 'Right Turn'
+            0: 'Forward',
+            1: 'Left Turn',
+            2: 'Right Turn'
         }
 
         self.actionVel = {
-            'Forward' : [0.8, 0.0, 0.0],
-            'Left Turn' : [0.8, 0.0, 0.5],
-            'Right Turn' : [0.8, 0.0, -0.5]
+            'Forward': [0.8, 0.0, 0.0],
+            'Left Turn': [0.8, 0.0, 0.5],
+            'Right Turn': [0.8, 0.0, -0.5]
         }
 
         self.action_space = spaces.Discrete(len(self.strActions))
 
-    def step(self, action: dict):
+    def step(self, action: int):
         """
 
-        :param action:
+        :param action: integer between 0 and 2
         :return: observation, reward, done, info
         """
         vel = self.actionVel[self.strActions[action]]
@@ -300,3 +289,7 @@ class DiscreteWorld(World1):
         theta = self.wrap_to_pi(t0 + (w * self.ts))
 
         self._agent_location = np.array([x, y, theta])
+
+        done, info, observation, reward = self.get_data(x, y)
+
+        return observation, reward, done, info
