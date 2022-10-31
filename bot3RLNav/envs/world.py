@@ -23,7 +23,6 @@ class World(gym.Env):
         self.agent_color = (0, 0, 255)
 
         self.movable_radius = self.center[0] - 75
-        #self.observation_space = spaces.Box(low=np.array([0 ,0,-np.pi,np.array([0, 0])]), high=np.array([x ,y,np.pi,np.array([x, y])]), dtype=np.float32)
         self.observation_space = spaces.Dict(
            {
                 "x": spaces.Box(0, x, shape=(1,), dtype=float),
@@ -58,6 +57,7 @@ class World(gym.Env):
         x, y, theta = self._agent_location
         return {"x": x, "y": y, "theta": theta, "target": self._target_location}
         #return [ x,  y, theta, self._target_location]
+
     # ----------------------------------------------------------------------
     def _get_info(self):
         """
@@ -141,8 +141,8 @@ class World(gym.Env):
         :param action:
         :return: observation, reward, done, info
         """
-        v = action[0]
-        w = action[1]
+        v = action["v"]
+        w = action["w"]
         x0, y0, t0 = self._agent_location
         x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
         y = y0 + (v * self.ts * np.sin(t0 + (0.5 * w * self.ts)))
@@ -222,6 +222,7 @@ class World1(World):
         super().__init__(map_file)
         x, y = self.map.shape
         self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi]), high=np.array([x, y, np.pi]), dtype=float)
+        self.action_space = spaces.Box(low=np.array([-0.5, -1]), high=np.array([0.5, 1]), dtype=float)
 
     # ----------------------------------------------------------------------
     def _get_obs(self):
@@ -231,6 +232,37 @@ class World1(World):
         :return:
         """
         return self._agent_location.flatten()
+
+    # ----------------------------------------------------------------------
+    def step(self, action):
+        """
+
+        :param action:
+        :return: observation, reward, done, info
+        """
+        v = action[0] + 0.5
+        w = action[1]
+        x0, y0, t0 = self._agent_location
+        x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
+        y = y0 + (v * self.ts * np.sin(t0 + (0.5 * w * self.ts)))
+        theta = self.wrap_to_pi(t0 + (w * self.ts))
+
+        self._agent_location = np.array([x, y, theta])
+
+        info = self._get_info()
+
+        distance = info["distance"][0]
+
+        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -1.0
+
+        observation = self._get_obs()
+
+        done = bool((distance <= self.tolerance) or (reward < 0))
+
+        if self.render_mode == "human":
+            self._render_frame()
+        return observation, reward, done, info
+
 
 class DiscreteWorld(World1):
     """"""
@@ -249,7 +281,7 @@ class DiscreteWorld(World1):
             'Left Turn' : [0.8, 0.0, 0.5],
             'Right Turn' : [0.8, 0.0, -0.5]
         }
-                
+
         self.action_space = spaces.Discrete(len(self.strActions))
 
     def step(self, action: dict):
