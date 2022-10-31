@@ -212,3 +212,21 @@ class World(gym.Env):
         """"""
         x, max_ = theta + np.pi, 2*np.pi
         return -np.pi + ((max_ + (x % max_)) % max_)
+
+
+class World1(World):
+    # ----------------------------------------------------------------------
+    def __init__(self, map_file: str):
+        """"""
+        super().__init__(map_file)
+        x, y = self.map.shape
+        self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi]), high=np.array([x, y, np.pi]), dtype=float)
+
+    # ----------------------------------------------------------------------
+    def _get_obs(self):
+        """
+        Return robot's x, y, theta coordinates according to the format of `self.observation_space`
+
+        :return:
+        """
+        return self._agent_location.flatten()
