@@ -231,3 +231,40 @@ class World1(World):
         :return:
         """
         return self._agent_location.flatten()
+
+class DiscreteWorld(World1):
+    """"""
+
+    # ----------------------------------------------------------------------
+    def __init__(self, map_file: str):
+        super().__init__(map_file)
+        self.strActions = {
+            0 : 'Forward',
+            1 : 'Left Turn',
+            2 : 'Right Turn'
+        }
+
+        self.actionVel = {
+            'Forward' : [0.8, 0.0, 0.0],
+            'Left Turn' : [0.8, 0.0, 0.5],
+            'Right Turn' : [0.8, 0.0, -0.5]
+        }
+                
+        self.action_space = spaces.Discrete(len(self.strActions))
+
+    def step(self, action: dict):
+        """
+
+        :param action:
+        :return: observation, reward, done, info
+        """
+        vel = self.actionVel[self.strActions[action]]
+        vx = vel[0]
+        vy = vel[1]
+        w = self.wrap_to_pi(vel[2])
+        x0, y0, t0 = self._agent_location
+        x = x0 + (vx * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
+        y = y0 + (vy * self.ts * np.sin(t0 + (0.5 * w * self.ts)))
+        theta = self.wrap_to_pi(t0 + (w * self.ts))
+
+        self._agent_location = np.array([x, y, theta])
