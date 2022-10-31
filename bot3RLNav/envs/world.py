@@ -220,7 +220,10 @@ class World1(World):
         """"""
         super().__init__(map_file)
         x, y = self.map.shape
+        # x, y, theta
         self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi]), high=np.array([x, y, np.pi]), dtype=float)
+        # v, w
+        self.action_space = spaces.Box(low=np.array([-0.5, -1]), high=np.array([0.5, 1,]), dtype=float)
 
     # ----------------------------------------------------------------------
     def _get_obs(self):
@@ -230,3 +233,33 @@ class World1(World):
         :return:
         """
         return self._agent_location.flatten()
+
+    # ----------------------------------------------------------------------
+    def step(self, action):
+        """
+
+        :param action:
+        :return: observation, reward, done, info
+        """
+        v = action[0] + 0.5
+        w = action[1]
+        x0, y0, t0 = self._agent_location
+        x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
+        y = y0 + (v * self.ts * np.sin(t0 + (0.5 * w * self.ts)))
+        theta = self.wrap_to_pi(t0 + (w * self.ts))
+
+        self._agent_location = np.array([x, y, theta])
+
+        info = self._get_info()
+
+        distance = info["distance"][0]
+
+        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -1.0
+
+        observation = self._get_obs()
+
+        done = bool((distance <= self.tolerance) or (reward < 0))
+
+        if self.render_mode == "human":
+            self._render_frame()
+        return observation, reward, done, info
