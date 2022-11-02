@@ -12,7 +12,8 @@ class World(gym.Env):
     # ----------------------------------------------------------------------
     def __init__(self, map_file: str):
         """"""
-        self.map = cv2.imread(map_file, cv2.IMREAD_GRAYSCALE)
+        self.coloured_map = cv2.imread(map_file, cv2.IMREAD_COLOR)
+        self.map = self.generate_gray_map(map_file)
         e = self.map.shape
         x, y = e
 
@@ -212,6 +213,31 @@ class World(gym.Env):
         """"""
         x, max_ = theta + np.pi, 2 * np.pi
         return -np.pi + ((max_ + (x % max_)) % max_)
+
+    def generate_gray_map(self, filename) -> np.ndarray:
+        img_gray = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+        thresh = self.binary_thresh(img_gray)
+        _, thresh2 = cv2.threshold(thresh, 250, 255, cv2.THRESH_BINARY)
+        kernel = np.ones((3,3),np.uint8)
+        closing = cv2.morphologyEx(thresh2, cv2.MORPH_CLOSE, kernel)
+        return closing
+
+    @staticmethod
+    def binary_thresh(image, threshold = 150, max_value=255):
+        """
+        param: image: image being processed
+        param: threshold: threshold value
+        param: max_value: value to set to pixels that are greater than threshold
+        return binary image
+        """
+        img = image.copy()
+        for i in range(image.shape[0]):
+            for j in range(image.shape[1]):
+                if threshold - 10 <= image[i][j] <= threshold + 10:
+                    img[i][j] = max_value
+                else:
+                    img[i][j] = 0
+        return img
 
 
 class World1(World):
