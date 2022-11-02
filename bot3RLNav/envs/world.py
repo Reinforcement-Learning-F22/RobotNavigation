@@ -165,7 +165,8 @@ class World(gym.Env):
         return done, info, observation, reward
 
     def render(self, mode="human"):
-        pass
+        if self.render_mode == "rgb_array":
+            return self._render_frame()
 
     def _circle(self, x, y):
         """
@@ -218,12 +219,12 @@ class World(gym.Env):
         img_gray = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
         thresh = self.binary_thresh(img_gray)
         _, thresh2 = cv2.threshold(thresh, 250, 255, cv2.THRESH_BINARY)
-        kernel = np.ones((3,3),np.uint8)
+        kernel = np.ones((3, 3), np.uint8)
         closing = cv2.morphologyEx(thresh2, cv2.MORPH_CLOSE, kernel)
         return closing
 
     @staticmethod
-    def binary_thresh(image, threshold = 150, max_value=255):
+    def binary_thresh(image, threshold=150, max_value=255):
         """
         param: image: image being processed
         param: threshold: threshold value
@@ -319,3 +320,43 @@ class DiscreteWorld(World1):
         done, info, observation, reward = self.get_data(x, y)
 
         return observation, reward, done, info
+
+
+########################################################################
+class World2(World1):
+    """"""
+
+    # ----------------------------------------------------------------------
+    def __init__(self, map_file: str, robot_file: str):
+        """"""
+        super().__init__(map_file)
+        self.agent = self.create_agent(robot_file)
+        self.frame = cv2.cvtColor(self.coloured_map, cv2.COLOR_RGB2RGBA)
+
+    # ----------------------------------------------------------------------
+    def create_agent(self, file):
+        """"""
+        robot = cv2.imread(file, cv2.IMREAD_UNCHANGED)
+
+        r1 = cv2.resize(robot, None, fx=0.1, fy=0.1, interpolation=cv2.INTER_AREA)
+
+        self.agent_radius = int(np.ceil(max(r1.shape)/2))
+
+        return r1
+
+    # ----------------------------------------------------------------------
+    def _render_frame(self):
+        """
+        Todo: continue from here, try to create a square agent
+         I have challenges with rotation at the moment. See rl_map.ipynb
+        :return:
+        """
+        frame = self.frame.copy()
+        c = self._get_obs()
+        radius_ = self.agent_radius
+        # top left
+        x, y = c[0] - radius_, c[1] - radius_
+        h, w, _ = self.agent.shape
+        old = frame[y:y+h, x:x+w].copy()
+        frame[y:y+h, x:x+w] += np.maximum(self.agent, old)
+        return frame
