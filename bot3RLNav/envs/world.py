@@ -394,8 +394,8 @@ class DiscreteWorld1(World2):
     """"""
 
     # ----------------------------------------------------------------------
-    def __init__(self, map_file: str):
-        super().__init__(map_file)
+    def __init__(self, map_file: str, robot_file: str, render_mode=None):
+        super().__init__(map_file, robot_file, render_mode)
         self.strActions = {
             0: 'Forward',
             1: 'Left Turn',
