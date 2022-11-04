@@ -48,7 +48,7 @@ class World(gym.Env):
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
         self._target_location = np.array([0, 0])
-        self.ts = 1
+        self.ts = 10
         self.tolerance = 3
 
     # ----------------------------------------------------------------------
@@ -97,11 +97,11 @@ class World(gym.Env):
         theta = self.np_random.uniform(-np.pi, np.pi, size=1)
         self._agent_location = np.array([x, y, theta])
 
-        self._target_location = self._agent_location
-        while np.array_equal(self._target_location, self._agent_location):
-            x, y = self.get_coordinates()
-            if self.valid_pose(x, y):
-                self._target_location = np.array([x[0], y[0]])
+        self._target_location = np.array([500, 500])
+        # while np.array_equal(self._target_location, self._agent_location):
+        #     x, y = self.get_coordinates()
+        #     if self.valid_pose(x, y):
+        #         self._target_location = np.array([x[0], y[0]])
 
         observation = self._get_obs()
         info = self._get_info()
@@ -158,7 +158,7 @@ class World(gym.Env):
     def get_data(self, x, y):
         info = self._get_info()
         distance = info["distance"][0]
-        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -1.0
+        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -10.0
         observation = self._get_obs()
         done = bool((distance <= self.tolerance) or (reward < 0))
         if self.render_mode == "human":
@@ -267,7 +267,7 @@ class World1(World):
         :param action:
         :return: observation, reward, done, info
         """
-        v = action[0] + 0.5
+        v = action[0] 
         w = action[1]
         x0, y0, t0 = self._agent_location
         x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
@@ -355,7 +355,8 @@ class World2(World1):
 
         # rotate agent by degrees
         # noinspection PyTypeChecker
-        im_ = self.agent.rotate(deg)
+        #robot will be
+        im_ = self.agent.rotate(-deg-90)
         # noinspection PyTypeChecker
         im_ = im_.resize(tuple(map(lambda i: int(i*0.1), im_.size)))
 
