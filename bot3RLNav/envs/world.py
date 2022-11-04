@@ -355,7 +355,8 @@ class World2(World1):
 
         # rotate agent by degrees
         # noinspection PyTypeChecker
-        im_ = self.agent.rotate(deg)
+        #allign robot image to match the motion
+        im_ = self.agent.rotate(-deg-90)
         # noinspection PyTypeChecker
         im_ = im_.resize(tuple(map(lambda i: int(i*0.1), im_.size)))
 
