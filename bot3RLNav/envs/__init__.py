@@ -1,1 +1,1 @@
-from bot3RLNav.envs.world import World, World1, DiscreteWorld
+from bot3RLNav.envs.world import World, World1, DiscreteWorld, World2

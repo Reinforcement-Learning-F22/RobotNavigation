@@ -51,6 +51,11 @@ To create requirements file. See [More](https://linuxhint.com/conda-install-requ
 conda list -e > requirements.txt
 ```
 
+For `pip`, use
+```
+pip freeze > pip_reqs.txt
+```
+
 You can create an environment for work using this package's requirements via
 ```
 conda create --name <env> --file requirements.txt
@@ -59,6 +64,11 @@ conda create --name <env> --file requirements.txt
 Install `opencv`. See [here](https://anaconda.org/conda-forge/opencv) for details.
 ```
 conda install -c conda-forge opencv
+```
+
+Install `PILLOW` See [here](https://anaconda.org/conda-forge/pillow) for details
+```
+conda install -c conda-forge pillow
 ```
 
 ### Gym Environment Registration
@@ -70,9 +80,30 @@ env = gym.make('id')
 ```
 See the mentioned `__init__` files for details.
 
+### Simulation
+To render simulation using `World-v2`, use the format below
+```
+env.reset()
+name = "bot3"
+cv2.namedWindow(name)
+rate = 500  # frame rate in ms
+while True:
+    frame = env.render(mode="rgb_array")
+    cv2.imshow("bot3", frame)
+    cv2.waitKey(rate)
+    action = env.action_space.sample() # random (or use policy)
+    obs, reward, done, info step = env.step(action)
+    if done:
+      frame = env.render(mode="rgb_array")
+      cv2.imshow("bot3", frame)
+      cv2.waitKey(rate)
+      break
+```
 
 ## References
 1. [Custom Environment](https://www.gymlibrary.dev/content/environment_creation/)
 2. [Spaces](https://www.gymlibrary.dev/api/spaces/)
 3. [Gym Github](https://github.com/openai/gym)
 4. [Markdown](https://daringfireball.net/projects/markdown/)
+5. [Create CV Window](https://docs.opencv.org/4.x/d7/dfc/group__highgui.html#ga5afdf8410934fd099df85c75b2e0888b)
+6. [CV imshow](https://docs.opencv.org/4.x/d7/dfc/group__highgui.html#ga453d42fe4cb60e5723281a89973ee563)

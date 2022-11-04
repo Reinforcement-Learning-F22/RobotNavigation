@@ -4,6 +4,8 @@ import numpy as np
 
 import cv2
 
+from PIL import Image
+
 
 ########################################################################
 class World(gym.Env):
@@ -45,6 +47,7 @@ class World(gym.Env):
         self.clock = None
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
+        self._target_location = np.array([0, 0])
         self.ts = 1
         self.tolerance = 3
 
@@ -57,7 +60,6 @@ class World(gym.Env):
         """
         x, y, theta = self._agent_location
         return {"x": x, "y": y, "theta": theta, "target": self._target_location}
-        # return [ x,  y, theta, self._target_location]
 
     # ----------------------------------------------------------------------
     def _get_info(self):
@@ -104,8 +106,7 @@ class World(gym.Env):
         observation = self._get_obs()
         info = self._get_info()
 
-        if self.render_mode == "human":
-            self._render_frame()
+        self.render(reset=True)
         if return_info:
             return observation, info
         return observation
@@ -164,8 +165,8 @@ class World(gym.Env):
             self._render_frame()
         return done, info, observation, reward
 
-    def render(self, mode="human"):
-        if self.render_mode == "rgb_array":
+    def render(self, mode="human", **kwargs):
+        if self.render_mode == "rgb_array" or mode == "rgb_array":
             return self._render_frame()
 
     def _circle(self, x, y):
@@ -327,36 +328,65 @@ class World2(World1):
     """"""
 
     # ----------------------------------------------------------------------
-    def __init__(self, map_file: str, robot_file: str):
+    def __init__(self, map_file: str, robot_file: str, render_mode=None):
         """"""
         super().__init__(map_file)
         self.agent = self.create_agent(robot_file)
-        self.frame = cv2.cvtColor(self.coloured_map, cv2.COLOR_RGB2RGBA)
+        rgba = cv2.cvtColor(self.coloured_map, cv2.COLOR_RGB2RGBA)
+        self.frame = Image.fromarray(rgba)
+        self.render_mode = render_mode
+        self.target_radius = 5
 
     # ----------------------------------------------------------------------
     def create_agent(self, file):
         """"""
-        robot = cv2.imread(file, cv2.IMREAD_UNCHANGED)
+        im = Image.open(file)
 
-        r1 = cv2.resize(robot, None, fx=0.1, fy=0.1, interpolation=cv2.INTER_AREA)
+        size = max(map(lambda i: int(i*0.1), im.size))
+        self.agent_radius = int(np.ceil(size/2))
 
-        self.agent_radius = int(np.ceil(max(r1.shape)/2))
-
-        return r1
+        return im
 
     # ----------------------------------------------------------------------
     def _render_frame(self):
+        """"""
+        x, y, theta = self._get_obs()
+        deg = np.degrees(theta)
+
+        # rotate agent by degrees
+        # noinspection PyTypeChecker
+        im_ = self.agent.rotate(deg)
+        # noinspection PyTypeChecker
+        im_ = im_.resize(tuple(map(lambda i: int(i*0.1), im_.size)))
+
+        # superimpose agent on map
+        image = self.merge(im_, (x, y))
+
+        # noinspection PyTypeChecker
+        return np.asarray(image)
+
+    # ----------------------------------------------------------------------
+    def merge(self, robot, pose):
+        """"""
+        im = self.frame.copy()
+        # noinspection PyTypeChecker
+        im.alpha_composite(robot, dest=tuple(map(int, pose)))
+
+        return im
+
+    def render(self, mode="human", **kwargs):
         """
-        Todo: continue from here, try to create a square agent
-         I have challenges with rotation at the moment. See rl_map.ipynb
+        Set's the target position on the frame when called from a .reset method.
+
+        :param mode:
+        :param kwargs:
         :return:
         """
-        frame = self.frame.copy()
-        c = self._get_obs()
-        radius_ = self.agent_radius
-        # top left
-        x, y = c[0] - radius_, c[1] - radius_
-        h, w, _ = self.agent.shape
-        old = frame[y:y+h, x:x+w].copy()
-        frame[y:y+h, x:x+w] += np.maximum(self.agent, old)
-        return frame
+        reset = kwargs.get("reset", False)
+        if reset:
+            # draw target location on coloured map
+            frame = cv2.cvtColor(self.coloured_map, cv2.COLOR_RGB2RGBA)
+            img_ = cv2.circle(frame, self._target_location, radius=self.target_radius, color=(0, 0, 255), thickness=-1)
+            self.frame = Image.fromarray(img_)
+        return super().render(mode, **kwargs)
+

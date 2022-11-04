@@ -1,0 +1,6 @@
+certifi==2022.9.24
+cloudpickle @ file:///home/conda/feedstock_root/build_artifacts/cloudpickle_1662587369221/work
+gym @ file:///D:/bld/gym_1657459175922/work
+numpy @ file:///D:/bld/numpy_1657483944523/work
+Pillow==9.2.0
+wincertstore==0.2
