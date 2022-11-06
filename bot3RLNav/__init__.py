@@ -29,3 +29,9 @@ register(
     entry_point='bot3RLNav.envs:DiscreteWorld1',
     max_episode_steps=1000,
 )
+
+register(
+    id='bot3RLNav/DiscreteWorld-v2',
+    entry_point='bot3RLNav.envs:DiscreteWorld2',
+    max_episode_steps=1000,
+)

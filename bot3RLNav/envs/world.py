@@ -48,8 +48,8 @@ class World(gym.Env):
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
         self._target_location = np.array([0, 0])
-        self.ts = 1
-        self.tolerance = 3
+        self.ts = 0.033
+        self.tolerance = 4
 
     # ----------------------------------------------------------------------
     def _get_obs(self) -> dict:
@@ -391,6 +391,7 @@ class World2(World1):
             self.frame = Image.fromarray(img_)
         return super().render(mode, **kwargs)
 
+
 class DiscreteWorld1(World2):
     """"""
 
@@ -430,4 +431,50 @@ class DiscreteWorld1(World2):
 
         done, info, observation, reward = self.get_data(x, y)
 
-        return observation, reward, done, info    
+        return observation, reward, done, info
+
+
+########################################################################
+class DiscreteWorld2(World2):
+    """"""
+
+    # ----------------------------------------------------------------------
+    def __init__(self, map_file: str, robot_file: str):
+        """
+        Uses a dicrete action scheme.
+        0, 1 ... 9, 10 for v; and
+        -10, -9, ... 0, ..., 9, 10 for w.
+        These values are clased down in the step method.
+
+        :param map_file:
+        :param robot_file:
+        """
+        super().__init__(map_file, robot_file)
+        self.action_space = spaces.Dict({
+            "v": spaces.Discrete(10),
+            "w": spaces.Discrete(21, start=-10)
+        })
+
+    # ----------------------------------------------------------------------
+    def step(self, action: spaces.Dict):
+        """
+        Performs a forward step given control action. Control actions are scaled down by 0.1
+
+        :param action: dict containing linear and angular velocity `v` & `w` respectively.
+        :return:
+        """
+        # noinspection PyTypeChecker
+        v = (action["v"])*0.1
+        # noinspection PyTypeChecker
+        w = (action["w"])*0.1
+
+        x0, y0, t0 = self._agent_location
+        x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
+        y = y0 + (v * self.ts * np.sin(t0 + (0.5 * w * self.ts)))
+        theta = self.wrap_to_pi(t0 + (w * self.ts))
+
+        self._agent_location = np.array([x, y, theta])
+
+        done, info, observation, reward = self.get_data(x, y)
+        return observation, reward, done, info
+
