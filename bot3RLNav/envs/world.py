@@ -51,6 +51,9 @@ class World(gym.Env):
         self.ts = 0.033
         self.tolerance = 4
 
+        self.goal_not_set = True
+        self.goals = []
+
     # ----------------------------------------------------------------------
     def _get_obs(self) -> dict:
         """
@@ -83,26 +86,44 @@ class World(gym.Env):
         """
         Randomly initialize the robot's pose and the target location until it does not concide with the
         current robot pose also set both positions within the movable region and not in an obstacle.
+        In order to make the initial robot pose, and the target to be constant, pass reset=False, in options dict.
+        i.e. options=dict(reset=False). Default is True.
 
         :param seed:
         :param options:
         """
+        if options is None:
+            options = {}
         super(World, self).reset(seed=seed)
         return_info = kwargs.get("return_info", False)
+        reset = options.get("reset", True)
 
-        while True:
-            x, y = self.get_coordinates()
-            if self.valid_pose(x, y):
-                break
-        theta = self.np_random.uniform(-np.pi, np.pi, size=1)
-        self._agent_location = np.array([x, y, theta])
+        if self.goal_not_set or reset:
+            # if goals haven't been initially set
+            # OR
+            # if the flag to reset was passed as True i.e. `reset=true`
+            while True:
+                x, y = self.get_coordinates()
+                if self.valid_pose(x, y):
+                    break
+            theta = self.np_random.uniform(-np.pi, np.pi, size=1)
+            self._agent_location = np.array([x, y, theta])
 
-        self._target_location = self._agent_location
-        while np.array_equal(self._target_location, self._agent_location):
-            x, y = self.get_coordinates()
-            if self.valid_pose(x, y):
-                self._target_location = np.array([x[0], y[0]])
+            self._target_location = self._agent_location
+            x, y, _ = self._agent_location
+            d = 0
+            while d < (2 * self.agent_radius) + 3:
+                # while target location is still within robot radius. Number 3 is some padding
+                x_, y_ = self.get_coordinates()
+                if self.valid_pose(x_, y_):
+                    d = np.sqrt(((x - x_) ** 2) + ((y - y_) ** 2))
+                    self._target_location = np.array([x_[0], y_[0]])
 
+            self.goal_not_set = False
+            self.goals = [self._agent_location.copy(), self._target_location.copy()]
+        else:
+            self._agent_location = self.goals[0].copy()
+            self._target_location = self.goals[1].copy()
         observation = self._get_obs()
         info = self._get_info()
 
@@ -280,6 +301,25 @@ class World1(World):
 
         return observation, reward, done, info
 
+    def get_coordinates(self):
+        """
+        Get random point (x, y) within movable region.
+        Randomly take `x` along the horizontal diameter of the circle of the movable region,
+        Take `y` such that (y^2) < (r^2) - (x^2)
+        Given that x^2 + y^2 < r^2
+
+        :return: x, y
+        """
+        x = self.np_random.integers(self.center[0] - self.movable_radius,
+                                    self.center[0] + self.movable_radius, size=1, dtype=int)
+        # distance from x to centre of circle
+        x_ = np.abs(self.center[0] - x)
+        # constraint d < sqrt(r**2 - x_**2)
+        d = int(np.ceil(np.sqrt((self.movable_radius**2) - (x_[0]**2))))
+        radius = d
+        y = self.np_random.integers(self.center[1] - radius, self.center[1] + radius, size=1, dtype=int)
+        return x, y
+
 
 class DiscreteWorld(World1):
     """"""
@@ -342,8 +382,8 @@ class World2(World1):
         """"""
         im = Image.open(file)
 
-        size = max(map(lambda i: int(i*0.1), im.size))
-        self.agent_radius = int(np.ceil(size/2))
+        size = max(map(lambda i: int(i * 0.1), im.size))
+        self.agent_radius = int(np.ceil(size / 2))
 
         return im
 
@@ -355,10 +395,10 @@ class World2(World1):
 
         # rotate agent by degrees
         # noinspection PyTypeChecker
-        #allign robot image to match the motion
-        im_ = self.agent.rotate(-deg-90)
+        # allign robot image to match the motion
+        im_ = self.agent.rotate(-deg - 90)
         # noinspection PyTypeChecker
-        im_ = im_.resize(tuple(map(lambda i: int(i*0.1), im_.size)))
+        im_ = im_.resize(tuple(map(lambda i: int(i * 0.1), im_.size)))
 
         # superimpose agent on map
         image = self.merge(im_, (x, y))
@@ -464,9 +504,9 @@ class DiscreteWorld2(World2):
         :return:
         """
         # noinspection PyTypeChecker
-        v = (action["v"])*0.1
+        v = (action["v"]) * 0.1
         # noinspection PyTypeChecker
-        w = (action["w"])*0.1
+        w = (action["w"]) * 0.1
 
         x0, y0, t0 = self._agent_location
         x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
@@ -477,4 +517,3 @@ class DiscreteWorld2(World2):
 
         done, info, observation, reward = self.get_data(x, y)
         return observation, reward, done, info
-

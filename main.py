@@ -12,9 +12,9 @@ if __name__ == '__main__':
     test_simulate = True
     if test_simulate:
         cv2.namedWindow("bot3")
-        wait = 1000  # ms
-        for i in range(5):
+        wait = 2000  # ms
+        for i in range(10):
+            obs = env.reset(options=dict(reset=True))
             img = env.render(mode="rgb_array")
             cv2.imshow("bot3", img)
             cv2.waitKey(wait)
-            env.reset()

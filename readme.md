@@ -100,6 +100,26 @@ while True:
       break
 ```
 
+### Map Version
+Two map versions exist. The map shown in the preceeding sections (with obstalces), and another shown below, 
+(without obstacles). The `env` can be created using the code fragment below.  
+Has been tested on `World-v1` and should work with this version and above, with all it's subclasses.
+```
+env = gym.make('bot3RLNav/World-v2', map_file="data/map01.jpg",
+             robot_file="data/robot.png")
+```
+<img src="data/map01.jpg" width="50%" alt="Image of World">
+
+### Resetting
+To set fixed targets use the code block below. This feature means, the robot initial pose and the target location are 
+always reset to the same first poses that the preceeding `.reset()` call made.
+```
+env = gym.make(...)
+env.reset(options={'reset': False})
+# or env.reset(options=dict(reset=False))
+```
+Works on `v0` and all the subclasses.
+
 ## References
 1. [Custom Environment](https://www.gymlibrary.dev/content/environment_creation/)
 2. [Spaces](https://www.gymlibrary.dev/api/spaces/)
