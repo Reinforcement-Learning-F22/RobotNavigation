@@ -48,8 +48,8 @@ class World(gym.Env):
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
         self._target_location = np.array([0, 0])
-        self.ts = 10
-        self.tolerance = 3
+        self.ts = 1
+        self.tolerance = 30
 
     # ----------------------------------------------------------------------
     def _get_obs(self) -> dict:
@@ -156,9 +156,10 @@ class World(gym.Env):
         return observation, reward, done, info
 
     def get_data(self, x, y):
+        
         info = self._get_info()
         distance = info["distance"][0]
-        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -10.0
+        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -10
         observation = self._get_obs()
         done = bool((distance <= self.tolerance) or (reward < 0))
         if self.render_mode == "human":
@@ -249,7 +250,7 @@ class World1(World):
         super().__init__(map_file)
         x, y = self.map.shape
         self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi]), high=np.array([x, y, np.pi]), dtype=float)
-        self.action_space = spaces.Box(low=np.array([-0.5, -1]), high=np.array([0.5, 1]), dtype=float)
+        self.action_space = spaces.Box(low=np.array([-10, -0.2]), high=np.array([10, 0.2]), dtype=float)
 
     # ----------------------------------------------------------------------
     def _get_obs(self):
