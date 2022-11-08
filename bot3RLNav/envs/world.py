@@ -177,9 +177,10 @@ class World(gym.Env):
         return observation, reward, done, info
 
     def get_data(self, x, y):
+        
         info = self._get_info()
         distance = info["distance"][0]
-        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -1.0
+        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -10
         observation = self._get_obs()
         done = bool((distance <= self.tolerance) or (reward < 0))
         if self.render_mode == "human":
@@ -270,7 +271,7 @@ class World1(World):
         super().__init__(map_file)
         x, y = self.map.shape
         self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi]), high=np.array([x, y, np.pi]), dtype=float)
-        self.action_space = spaces.Box(low=np.array([-0.5, -1]), high=np.array([0.5, 1]), dtype=float)
+        self.action_space = spaces.Box(low=np.array([-10, -0.2]), high=np.array([10, 0.2]), dtype=float)
 
     # ----------------------------------------------------------------------
     def _get_obs(self):
@@ -288,7 +289,7 @@ class World1(World):
         :param action:
         :return: observation, reward, done, info
         """
-        v = action[0] + 0.5
+        v = action[0] 
         w = action[1]
         x0, y0, t0 = self._agent_location
         x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
