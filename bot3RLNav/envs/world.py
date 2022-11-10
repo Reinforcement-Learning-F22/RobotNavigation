@@ -25,7 +25,7 @@ class World(gym.Env):
         self.agent_thickness = -1
         self.agent_color = (0, 0, 255)
 
-        self.movable_radius = self.center[0] - 75
+        self.movable_radius = self.center[0] - 90
         self.observation_space = spaces.Dict(
             {
                 "x": spaces.Box(0, x, shape=(1,), dtype=float),
@@ -177,7 +177,6 @@ class World(gym.Env):
         return observation, reward, done, info
 
     def get_data(self, x, y):
-        
         info = self._get_info()
         distance = info["distance"][0]
         reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -10
@@ -289,7 +288,7 @@ class World1(World):
         :param action:
         :return: observation, reward, done, info
         """
-        v = action[0] 
+        v = action[0]
         w = action[1]
         x0, y0, t0 = self._agent_location
         x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
@@ -311,15 +310,19 @@ class World1(World):
 
         :return: x, y
         """
-        x = self.np_random.integers(self.center[0] - self.movable_radius,
-                                    self.center[0] + self.movable_radius, size=1, dtype=int)
-        # distance from x to centre of circle
-        x_ = np.abs(self.center[0] - x)
-        # constraint d < sqrt(r**2 - x_**2)
-        d = int(np.ceil(np.sqrt((self.movable_radius**2) - (x_[0]**2))))
-        radius = d
-        y = self.np_random.integers(self.center[1] - radius, self.center[1] + radius, size=1, dtype=int)
-        return x, y
+        while True:
+            try:
+                x = self.np_random.integers(self.center[0] - self.movable_radius,
+                                            self.center[0] + self.movable_radius, size=1, dtype=int)
+                # distance from x to centre of circle
+                x_ = np.abs(self.center[0] - x)
+                # constraint d < sqrt(r**2 - x_**2)
+                d = int(np.ceil(np.sqrt((self.movable_radius**2) - (x_[0]**2))))
+                radius = d
+                y = self.np_random.integers(self.center[1] - radius, self.center[1] + radius, size=1, dtype=int)
+                return x, y
+            except ValueError:
+                pass
 
 
 class DiscreteWorld(World1):
@@ -491,13 +494,17 @@ class DiscreteWorld2(World2):
         :param robot_file:
         """
         super().__init__(map_file, robot_file)
-        self.action_space = spaces.Dict({
-            "v": spaces.Discrete(10),
-            "w": spaces.Discrete(21, start=-10)
-        })
+        self.actions = {}
+        count = 0
+        for v in range(5):
+            for w in range(-5, 5):
+                self.actions[count] = [v, w]
+                count += 1
+        self.action_space = spaces.Discrete(len(self.actions))
+        self.ts = 0.03
 
     # ----------------------------------------------------------------------
-    def step(self, action: spaces.Dict):
+    def step(self, action: int):
         """
         Performs a forward step given control action. Control actions are scaled down by 0.1
 
@@ -505,9 +512,10 @@ class DiscreteWorld2(World2):
         :return:
         """
         # noinspection PyTypeChecker
-        v = (action["v"]) * 0.1
+        _action = self.actions[action]
+        v = _action[0]*2
         # noinspection PyTypeChecker
-        w = (action["w"]) * 0.1
+        w = _action[1]*2
 
         x0, y0, t0 = self._agent_location
         x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))

@@ -71,6 +71,11 @@ Install `PILLOW` See [here](https://anaconda.org/conda-forge/pillow) for details
 conda install -c conda-forge pillow
 ```
 
+Install `stable-baseline3` See [here](https://anaconda.org/conda-forge/stable-baselines3) for more details.
+```
+conda install -c conda-forge stable-baselines3
+```
+
 ### Gym Environment Registration
 In the `__init__.py` file in `envs` add an import statement to your created world.  
 In the package's `__init__.py` supply the `id`, `entry_point` and other necessary options for your environment.  

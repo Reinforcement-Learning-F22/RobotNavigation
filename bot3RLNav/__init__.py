@@ -27,7 +27,7 @@ register(
 register(
     id='bot3RLNav/DiscreteWorld-v1',
     entry_point='bot3RLNav.envs:DiscreteWorld1',
-    max_episode_steps=1000,
+    max_episode_steps=5000,
 )
 
 register(
