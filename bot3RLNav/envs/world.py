@@ -48,7 +48,7 @@ class World(gym.Env):
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
         self._target_location = np.array([0, 0])
-        self.ts = 0.033
+        self.ts = 1.0
         self.tolerance = 4
 
         self.goal_not_set = True
@@ -338,9 +338,9 @@ class DiscreteWorld(World1):
         }
 
         self.actionVel = {
-            'Forward': [0.8, 0.0, 0.0],
-            'Left Turn': [0.8, 0.0, 0.5],
-            'Right Turn': [0.8, 0.0, -0.5]
+            'Forward': [10.0, 0.0, 0.0],
+            'Left Turn': [10.0, 0.0, 0.5],
+            'Right Turn': [10.0, 0.0, -0.5]
         }
 
         self.action_space = spaces.Discrete(len(self.strActions))
@@ -449,9 +449,9 @@ class DiscreteWorld1(World2):
         }
 
         self.actionVel = {
-            'Forward': [0.8, 0.0, 0.0],
-            'Left Turn': [0.8, 0.0, 0.5],
-            'Right Turn': [0.8, 0.0, -0.5]
+            'Forward': [10.0, 0.0, 0.0],
+            'Left Turn': [10.0, 0.0, 0.5],
+            'Right Turn': [10.0, 0.0, -0.5]
         }
 
         self.action_space = spaces.Discrete(len(self.strActions))
