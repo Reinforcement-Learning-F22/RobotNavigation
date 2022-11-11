@@ -8,14 +8,14 @@ from gym.utils.env_checker import check_env
 # ----------------------------------------------------------------------
 def check():
     """"""
-    env = gym.make('bot3RLNav/DiscreteWorld-v2', map_file="data/map01.jpg",
+    env = gym.make('bot3RLNav/World-v3', map_file="data/map01.jpg",
                    robot_file="data/robot.png")
     check_env(env)
     print(env.action_space.sample())
     test_simulate = True
     if test_simulate:
         cv2.namedWindow("bot3")
-        wait = 2000  # ms
+        wait = 500  # ms
         for i in range(10):
             obs = env.reset(options=dict(reset=True))
             img = env.render(mode="rgb_array")
@@ -55,5 +55,5 @@ def train():
 
 
 if __name__ == '__main__':
-    # check()
-    train()
+    check()
+    # train()

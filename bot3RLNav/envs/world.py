@@ -48,7 +48,7 @@ class World(gym.Env):
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
         self._target_location = np.array([0, 0])
-        self.ts = 1.0
+        self.ts = 0.033
         self.tolerance = 4
 
         self.goal_not_set = True
@@ -173,18 +173,22 @@ class World(gym.Env):
 
         self._agent_location = np.array([x, y, theta])
 
-        done, info, observation, reward = self.get_data(x, y)
+        done, info, observation, reward = self.get_data()
         return observation, reward, done, info
 
-    def get_data(self, x, y):
+    def get_data(self):
         info = self._get_info()
         distance = info["distance"][0]
-        reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -10
+        reward = self.get_reward(distance)
         observation = self._get_obs()
         done = bool((distance <= self.tolerance) or (reward < 0))
         if self.render_mode == "human":
             self._render_frame()
         return done, info, observation, reward
+
+    def get_reward(self, distance):
+        x, y, theta = self._agent_location
+        return (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -10
 
     def render(self, mode="human", **kwargs):
         if self.render_mode == "rgb_array" or mode == "rgb_array":
@@ -297,7 +301,7 @@ class World1(World):
 
         self._agent_location = np.array([x, y, theta])
 
-        done, info, observation, reward = self.get_data(x, y)
+        done, info, observation, reward = self.get_data()
 
         return observation, reward, done, info
 
@@ -317,7 +321,7 @@ class World1(World):
                 # distance from x to centre of circle
                 x_ = np.abs(self.center[0] - x)
                 # constraint d < sqrt(r**2 - x_**2)
-                d = int(np.ceil(np.sqrt((self.movable_radius**2) - (x_[0]**2))))
+                d = int(np.ceil(np.sqrt((self.movable_radius ** 2) - (x_[0] ** 2))))
                 radius = d
                 y = self.np_random.integers(self.center[1] - radius, self.center[1] + radius, size=1, dtype=int)
                 return x, y
@@ -338,9 +342,9 @@ class DiscreteWorld(World1):
         }
 
         self.actionVel = {
-            'Forward': [10.0, 0.0, 0.0],
-            'Left Turn': [10.0, 0.0, 0.5],
-            'Right Turn': [10.0, 0.0, -0.5]
+            'Forward': [0.8, 0.0, 0.0],
+            'Left Turn': [0.8, 0.0, 0.5],
+            'Right Turn': [0.8, 0.0, -0.5]
         }
 
         self.action_space = spaces.Discrete(len(self.strActions))
@@ -362,7 +366,7 @@ class DiscreteWorld(World1):
 
         self._agent_location = np.array([x, y, theta])
 
-        done, info, observation, reward = self.get_data(x, y)
+        done, info, observation, reward = self.get_data()
 
         return observation, reward, done, info
 
@@ -449,9 +453,9 @@ class DiscreteWorld1(World2):
         }
 
         self.actionVel = {
-            'Forward': [10.0, 0.0, 0.0],
-            'Left Turn': [10.0, 0.0, 0.5],
-            'Right Turn': [10.0, 0.0, -0.5]
+            'Forward': [0.8, 0.0, 0.0],
+            'Left Turn': [0.8, 0.0, 0.5],
+            'Right Turn': [0.8, 0.0, -0.5]
         }
 
         self.action_space = spaces.Discrete(len(self.strActions))
@@ -473,13 +477,31 @@ class DiscreteWorld1(World2):
 
         self._agent_location = np.array([x, y, theta])
 
-        done, info, observation, reward = self.get_data(x, y)
+        done, info, observation, reward = self.get_data()
 
         return observation, reward, done, info
 
 
+class World3(World2):
+    # ----------------------------------------------------------------------
+    def __init__(self, map_file: str, robot_file: str):
+        """"""
+        super().__init__(map_file, robot_file)
+
+    def get_reward(self, distance):
+        x, y, theta = self._agent_location
+        xg, yg = self._target_location
+
+        reward = super().get_reward(distance)
+        bearing = np.arctan2(yg - y, xg - x)
+        alpha = bearing - theta
+        alpha /= np.pi
+        reward -= alpha
+        return reward[0]
+
+
 ########################################################################
-class DiscreteWorld2(World2):
+class DiscreteWorld2(World3):
     """"""
 
     # ----------------------------------------------------------------------
@@ -513,9 +535,9 @@ class DiscreteWorld2(World2):
         """
         # noinspection PyTypeChecker
         _action = self.actions[action]
-        v = _action[0]*2
+        v = _action[0] * 2
         # noinspection PyTypeChecker
-        w = _action[1]*2
+        w = _action[1] * 2
 
         x0, y0, t0 = self._agent_location
         x = x0 + (v * self.ts * np.cos(t0 + (0.5 * w * self.ts)))
@@ -524,5 +546,5 @@ class DiscreteWorld2(World2):
 
         self._agent_location = np.array([x, y, theta])
 
-        done, info, observation, reward = self.get_data(x, y)
+        done, info, observation, reward = self.get_data()
         return observation, reward, done, info
