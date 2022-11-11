@@ -1,9 +1,7 @@
-import gym
-from gym import spaces
-import numpy as np
-
 import cv2
-
+import gym
+import numpy as np
+from gym import spaces
 from PIL import Image
 
 
@@ -53,7 +51,7 @@ class World(gym.Env):
 
         self.goal_not_set = True
         self.goals = []
-        self.obstacles_reward = -10
+        self.obstacles_reward = -100
 
     # ----------------------------------------------------------------------
     def _get_obs(self) -> dict:
@@ -99,37 +97,41 @@ class World(gym.Env):
         return_info = kwargs.get("return_info", False)
         reset = options.get("reset", True)
 
-        if self.goal_not_set or reset:
-            # if goals haven't been initially set
-            # OR
-            # if the flag to reset was passed as True i.e. `reset=true`
-            while True:
-                x, y = self.get_coordinates()
-                if self.valid_pose(x, y):
-                    break
-            theta = self.np_random.uniform(-np.pi, np.pi, size=1)
-            self._agent_location = np.array([x, y, theta])
+        # if self.goal_not_set or reset:
+        #     # if goals haven't been initially set
+        #     # OR
+        #     # if the flag to reset was passed as True i.e. `reset=true`
+        #     while True:
+        #         x, y = self.get_coordinates()
+        #         if self.valid_pose(x, y):
+        #             break
+        #     theta = self.np_random.uniform(-np.pi, np.pi, size=1)
+        #     self._agent_location = np.array([x, y, theta])
 
-            self._target_location = self._agent_location
-            x, y, _ = self._agent_location
-            d = 0
-            while d < (2 * self.agent_radius) + 3:
-                # while target location is still within robot radius. Number 3 is some padding
-                x_, y_ = self.get_coordinates()
-                if self.valid_pose(x_, y_):
-                    d = np.sqrt(((x - x_) ** 2) + ((y - y_) ** 2))
-                    self._target_location = np.array([x_[0], y_[0]])
+        #     self._target_location = self._agent_location
+        #     x, y, _ = self._agent_location
+        #     d = 0
+        #     while d < (2 * self.agent_radius) + 3:
+        #         # while target location is still within robot radius. Number 3 is some padding
+        #         x_, y_ = self.get_coordinates()
+        #         if self.valid_pose(x_, y_):
+        #             d = np.sqrt(((x - x_) ** 2) + ((y - y_) ** 2))
+        #             self._target_location = np.array([x_[0], y_[0]])
 
-            self.goal_not_set = False
-            #self.goals = [self._agent_location.copy(), self._target_location.copy()]
-            self.goals = [np.array([[350],[350],[-np.pi]]), np.array([250,500])]
+        #     self.goal_not_set = False
+        #     #self.goals = [self._agent_location.copy(), self._target_location.copy()]
+        #     self.goals = [np.array([[350],[350],[-np.pi]]), np.array([250,500])]
 
-        else:
-            self._agent_location = np.array([[350],[500],[-np.pi]])
-            self._target_location = np.array([250,300])
+        # else:
+        #     self._agent_location = np.array([[350],[350],[-np.pi]])
+        #     self._target_location = np.array([250,500])
+        self._agent_location = np.array([[350],[350],[-np.pi]])
+        self._target_location = np.array([250,500])
         observation = self._get_obs()
         info = self._get_info()
-
+        #caluclate distance between the generated intial and final points
+        distance = info["distance"][0]
+        self.prev_distance =  distance
         self.render(reset=True)
         if return_info:
             return observation, info
@@ -184,16 +186,21 @@ class World(gym.Env):
         distance = info["distance"][0]
         reward = self.get_reward(distance)
         observation = self._get_obs()
-        done = bool((distance <= self.tolerance) or (reward < 0))
-        if (distance <= self.tolerance):
-            reward = 10
+        done = bool(distance <= self.tolerance)
         if self.render_mode == "human":
             self._render_frame()
         return done, info, observation, reward
 
     def get_reward(self, distance):
-        x, y, theta = self._agent_location
-        return (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else self.obstacles_reward
+        x, y, _ = self._agent_location
+        # calculate difference between current and previous distances
+        distance_rate = self.prev_distance - distance
+        if (distance <= self.tolerance):
+            return 120
+        #print("DEBUG AT get_reward: prev_stance = ",self.prev_distance," & distance = ", distance)            
+        self.prev_distance = distance
+        print("distance error: ",distance_rate)
+        return distance_rate if self.valid_pose(int(x), int(y)) else self.obstacles_reward
 
     def render(self, mode="human", **kwargs):
         if self.render_mode == "rgb_array" or mode == "rgb_array":
@@ -279,7 +286,7 @@ class World1(World):
         super().__init__(map_file)
         x, y = self.map.shape
         self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi]), high=np.array([x, y, np.pi]), dtype=float)
-        self.action_space = spaces.Box(low=np.array([0, -0.7]), high=np.array([10, 0.7]), dtype=float)
+        self.action_space = spaces.Box(low=np.array([0, -0.]), high=np.array([5, 0.5]), dtype=float)
 
     # ----------------------------------------------------------------------
     def _get_obs(self):
@@ -497,16 +504,17 @@ class World3(World2):
         x, y, theta = self._agent_location
         xg, yg = self._target_location
         # add 1 to reward for when robot orientation aligns with target
-        reward = 1 + super().get_reward(distance)
+        reward = super().get_reward(distance)
         # target orientation
         bearing = np.arctan2(yg - y, xg - x)
         # orientation error
         alpha = bearing - theta
         # normalization
         alpha /= np.pi
+        #print("orientation error: ", alpha," reward befor error: ", reward )
         # added to reward
-        reward -= alpha
-        return reward[0]
+        reward -= np.abs(alpha)
+        return reward
 
 
 ########################################################################
