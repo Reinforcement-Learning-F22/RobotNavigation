@@ -48,8 +48,8 @@ class World(gym.Env):
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
         self._target_location = np.array([0, 0])
-        self.ts = 0.033
-        self.tolerance = 4
+        self.ts = 0.1
+        self.tolerance = 15
 
         self.goal_not_set = True
         self.goals = []
@@ -120,10 +120,12 @@ class World(gym.Env):
                     self._target_location = np.array([x_[0], y_[0]])
 
             self.goal_not_set = False
-            self.goals = [self._agent_location.copy(), self._target_location.copy()]
+            #self.goals = [self._agent_location.copy(), self._target_location.copy()]
+            self.goals = [np.array([[350],[350],[-np.pi]]), np.array([250,500])]
+
         else:
-            self._agent_location = self.goals[0].copy()
-            self._target_location = self.goals[1].copy()
+            self._agent_location = np.array([[350],[500],[-np.pi]])
+            self._target_location = np.array([250,300])
         observation = self._get_obs()
         info = self._get_info()
 
@@ -182,6 +184,8 @@ class World(gym.Env):
         reward = self.get_reward(distance)
         observation = self._get_obs()
         done = bool((distance <= self.tolerance) or (reward < 0))
+        if (distance <= self.tolerance):
+            reward = 10
         if self.render_mode == "human":
             self._render_frame()
         return done, info, observation, reward
@@ -274,7 +278,7 @@ class World1(World):
         super().__init__(map_file)
         x, y = self.map.shape
         self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi]), high=np.array([x, y, np.pi]), dtype=float)
-        self.action_space = spaces.Box(low=np.array([-10, -0.2]), high=np.array([10, 0.2]), dtype=float)
+        self.action_space = spaces.Box(low=np.array([0, -0.7]), high=np.array([10, 0.7]), dtype=float)
 
     # ----------------------------------------------------------------------
     def _get_obs(self):
