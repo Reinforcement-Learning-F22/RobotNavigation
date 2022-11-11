@@ -42,11 +42,9 @@ This calculates the distance between robot pose and target location and generate
 distance = sqrt(((xg - x)^2) + ((yg - y)^2))
 reward = 1/(1 + distance)
 ```
-By this system reward system, rewards are always between 0 and 1. When robot is close to target, the distance is zero, 
-which in turn yields `reward = 1/(1 + 0) = 1/1 = 1`.
+By this system, rewards are always between 0 and 1. When robot is close to target, the distance is zero, which in turn yields `reward = 1/(1 + 0) = 1/1 = 1`.
 
-Conversely, as robot moves farther from goal, distance becomes large, and reward tends to zero.
-`reward = 1/(1 + inf) ~= 1/inf ~= 0`
+Conversely, as robot moves farther from goal, distance becomes large, and reward tends to zero. `reward = 1/(1 + inf) ~= 1/inf ~= 0`
 
 #### Bearing reward. 
 We generate another reward which is a function of the robot's orientation and the orientation it needs to take in order 
