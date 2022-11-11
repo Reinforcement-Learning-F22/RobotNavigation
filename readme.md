@@ -31,6 +31,41 @@ With this background information do we build our world having the following addi
    y = y0 + v*sin(t0 + 0.5*w)
    t = t0 + w   //wrapped to values between -pi to pi
    ```
+   
+### Reward System
+Walls and all obstacles are assigned a negative reward `-10`. The `step` method also sends a done signal when reward is 
+negative.
+Rewards for the navigable region are calculated in two sections as explained below.
+#### Distance Reward
+This calculates the distance between robot pose and target location and generates a reward from it.
+```
+distance = sqrt(((xg - x)^2) + ((yg - y)^2))
+reward = 1/(1 + distance)
+```
+By this system reward system, rewards are always between 0 and 1. When robot is close to target, the distance is zero, 
+which in turn yields `reward = 1/(1 + 0) = 1/1 = 1`.
+
+Conversely, as robot moves farther from goal, distance becomes large, and reward tends to zero.
+`reward = 1/(1 + inf) ~= 1/inf ~= 0`
+
+#### Bearing reward. 
+We generate another reward which is a function of the robot's orientation and the orientation it needs to take in order 
+to align with the target. This reward is also set between 0 and 1. 0 for when the robot's orientation is completely 
+offset, and 1 for when it is aligned to the target. 
+Given robot pose denoted as `x, y, theta` and goal location denoted as `xg, yg`, we calculate reward as
+```
+bearing = arctan2(yg - y, xg - x)
+error = bearing - theta
+```
+This gives an error between `0` and `pi`, which we then we normalize this error to values between `0` and `1`
+```
+error = error/pi
+reward = 1 - error
+```
+With the above system, the highest error is 1 and the lowest 0 and similarly, highest reward is 1 and lowest is 0.
+
+The distance reward is then added to the bearing reward to obtain a maximum of 2 and a minimum of 0.
+
 
 ## Helpers
 ### Workspace Setup
