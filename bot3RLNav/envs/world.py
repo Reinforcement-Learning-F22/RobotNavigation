@@ -53,6 +53,7 @@ class World(gym.Env):
 
         self.goal_not_set = True
         self.goals = []
+        self.obstacles_reward = -10
 
     # ----------------------------------------------------------------------
     def _get_obs(self) -> dict:
@@ -192,7 +193,7 @@ class World(gym.Env):
 
     def get_reward(self, distance):
         x, y, theta = self._agent_location
-        return (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else -10
+        return (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else self.obstacles_reward
 
     def render(self, mode="human", **kwargs):
         if self.render_mode == "rgb_array" or mode == "rgb_array":

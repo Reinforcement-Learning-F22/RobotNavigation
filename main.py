@@ -35,7 +35,7 @@ def train():
     obs = env.reset()
     name = "bot3"
     cv2.namedWindow(name)
-    rate = 1000  # frame rate in ms
+    rate = 100  # frame rate in ms
     count = 500
     while count > 0:
         frame = env.render(mode="rgb_array")
