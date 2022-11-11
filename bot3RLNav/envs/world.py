@@ -491,11 +491,15 @@ class World3(World2):
     def get_reward(self, distance):
         x, y, theta = self._agent_location
         xg, yg = self._target_location
-
-        reward = super().get_reward(distance)
+        # add 1 to reward for when robot orientation aligns with target
+        reward = 1 + super().get_reward(distance)
+        # target orientation
         bearing = np.arctan2(yg - y, xg - x)
+        # orientation error
         alpha = bearing - theta
+        # normalization
         alpha /= np.pi
+        # added to reward
         reward -= alpha
         return reward[0]
 
