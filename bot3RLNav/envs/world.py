@@ -50,8 +50,8 @@ class World(gym.Env):
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
         self._target_location = np.array([0, 0])
-        self.ts = 0.033
-        self.tolerance = 4
+        self.ts = 0.05
+        self.tolerance = 20
 
         self.goal_not_set = True
         self.goals = []
@@ -129,7 +129,7 @@ class World(gym.Env):
             self._target_location = self.goals[1].copy()
         observation = self._get_obs()
         info = self._get_info()
-
+        self._step_recorder =0
         self.render(reset=True)
         if return_info:
             return observation, info
@@ -186,7 +186,7 @@ class World(gym.Env):
         observation = self._get_obs()
         x, y, _ = self._agent_location
         #terminate if robot reach goal, reach max_steps, or hit the wall 
-        done = bool((distance <= self.tolerance) or (self._step_recorder >= self.max_steps) or not (self.valid_pose(int(x), int(y))))
+        done = bool((distance <= self.tolerance) or (self._step_recorder + 1 >= self.max_steps) or not (self.valid_pose(int(x), int(y))))
         if self.render_mode == "human":
             self._render_frame()
         self._step_recorder +=1
@@ -279,8 +279,8 @@ class World1(World):
         """"""
         super().__init__(map_file)
         x, y = self.map.shape
-        self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi]), high=np.array([x, y, np.pi]), dtype=float)
-        self.action_space = spaces.Box(low=np.array([-10, -0.2]), high=np.array([10, 0.2]), dtype=float)
+        self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi]), high=np.array([x, y, np.pi]), dtype='float32')
+        self.action_space = spaces.Box(low=np.array([0, -0.2]), high=np.array([10, 0.2]), dtype='float32')
 
     # ----------------------------------------------------------------------
     def _get_obs(self):
@@ -513,7 +513,7 @@ class World3(World2):
         # normalization
         alpha /= np.pi
         # added to reward
-        reward += alpha[0]
+        reward -= alpha[0]
         if return_alpha:
             return reward, alpha
         return reward
