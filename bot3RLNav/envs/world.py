@@ -43,7 +43,8 @@ class World(gym.Env):
         )
 
         self.render_mode = None
-
+        self._step_recorder=0
+        self.max_steps = 800
         self.window = None
         self.clock = None
 
@@ -183,9 +184,12 @@ class World(gym.Env):
         distance = info["distance"][0]
         reward = self.get_reward(distance)
         observation = self._get_obs()
-        done = bool((distance <= self.tolerance) or (reward < -8))
+        x, y, _ = self._agent_location
+        #terminate if robot reach goal, reach max_steps, or hit the wall 
+        done = bool((distance <= self.tolerance) or (self._step_recorder >= self.max_steps) or not (self.valid_pose(int(x), int(y))))
         if self.render_mode == "human":
             self._render_frame()
+        self._step_recorder +=1
         return done, info, observation, reward
 
     def get_reward(self, distance):
