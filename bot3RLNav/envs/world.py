@@ -44,14 +44,14 @@ class World(gym.Env):
 
         self.render_mode = None
         self._step_recorder=0
-        self.max_steps = 800
+        self.max_steps = 1000
         self.window = None
         self.clock = None
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
         self._target_location = np.array([0, 0])
         self.ts = 0.05
-        self.tolerance = 20
+        self.tolerance = 10
 
         self.goal_not_set = True
         self.goals = []
