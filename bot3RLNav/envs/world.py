@@ -44,14 +44,14 @@ class World(gym.Env):
 
         self.render_mode = None
         self._step_recorder=0
-        self.max_steps = 800
+        self.max_steps = 1000
         self.window = None
         self.clock = None
 
         self._agent_location = np.array([0.0, 0.0, 0.0])
         self._target_location = np.array([0, 0])
         self.ts = 0.05
-        self.tolerance = 20
+        self.tolerance = 10
 
         self.goal_not_set = True
         self.goals = []
@@ -185,7 +185,7 @@ class World(gym.Env):
         reward = self.get_reward(distance)
         observation = self._get_obs()
         x, y, _ = self._agent_location
-        #terminate if robot reach goal, reach max_steps, or hit the wall 
+        #terminate if robot reach goal, reach max_steps, or hit the wall
         done = bool((distance <= self.tolerance) or (self._step_recorder + 1 >= self.max_steps) or not (self.valid_pose(int(x), int(y))))
         if self.render_mode == "human":
             self._render_frame()
@@ -739,7 +739,7 @@ class World4(gym.Env):
         """
         x, y, theta = self._agent_location.flatten()
         # scale distance by movable diameter
-        distance /= (self.movable_radius * 2)
+        # distance /= (self.movable_radius * 2)
         reward = (1 / (1 + distance)) if self.valid_pose(int(x), int(y)) else self.obstacles_reward
         if alpha:
             reward += (1 - alpha)
@@ -981,16 +981,21 @@ class DiscreteWorld5(DiscreteWorld4):
         return_info = kwargs.get("return_info", False)
         kwargs["return_info"] = True
         obs, info = super().reset(seed=seed, options=options, **kwargs)
-        observation = np.array([*obs] + [info["alpha"], info["distance"] / (self.movable_radius * 2)])
+        more_obs = self.get_more_obs(info)
+        observation = np.array([*obs] + more_obs)
         if return_info:
             return observation, info
         return observation
+
+    def get_more_obs(self, info):
+        more_obs = [info["alpha"][0], (info["distance"] / (self.movable_radius * 2))[0]]
+        return more_obs
 
     # ----------------------------------------------------------------------
     def step(self, action: int):
         """"""
         obs, reward, done, info = super().step(action=action)
-        observation = np.array([*obs] + [info["alpha"], info["distance"] / (self.movable_radius * 2)])
+        observation = np.array([*obs] + self.get_more_obs(info))
         return observation, reward, done, info
 
 
@@ -1003,10 +1008,10 @@ class World5(World4):
         """"""
         super().__init__(map_file, robot_file, **kwargs)
         x, y = self.map.shape
-        # self.observation_space = spaces.Box(low=np.array([0, 0, -1, 0, 0]), high=np.array([1, 1, 1, 1, 1]),
-        #                                     dtype=np.float32)
-        self.observation_space = spaces.Box(low=np.array([0, 0, -np.pi, 0, 0]), high=np.array([x, y, np.pi, 1, 1]),
+        self.observation_space = spaces.Box(low=np.array([0, 0, -1, 0, 0]), high=np.array([1, 1, 1, 1, 1]),
                                             dtype=np.float32)
+        self.observation_space1 = spaces.Box(low=np.array([0, 0, -np.pi, 0, 0]), high=np.array([x, y, np.pi, 1, 1]),
+                                             dtype=np.float32)
         self.action_space = spaces.Box(low=np.array(list(action_low)), high=np.array(list(action_high)),
                                        dtype=np.float32)
 
@@ -1017,7 +1022,7 @@ class World5(World4):
         return_info = kwargs.get("return_info", False)
         kwargs["return_info"] = True
         obs, info = super().reset(seed=seed, options=options, **kwargs)
-        distance = float(info["distance"])/(self.movable_radius * 2)
+        distance = float(info["distance"]) / (self.movable_radius * 2)
         observation = np.array([*obs] + [float(info["alpha"]), distance],
                                dtype=np.float32)
         if return_info:
@@ -1029,21 +1034,22 @@ class World5(World4):
         """"""
         # scale up action
         action = action + np.array([0.5, 0])
-        action = action * np.array([10, 3])
+        action = action * np.array([20, 2])
 
         obs, reward, done, info = super().step(action=action)
-        observation = np.array([*obs] + [float(info["alpha"]), np.float32(info["distance"][0]/(self.movable_radius * 2))],
-                               dtype=np.float32)
+        observation = np.array(
+            [*obs] + [float(info["alpha"]), np.float32(info["distance"][0] / (self.movable_radius * 2))],
+            dtype=np.float32)
         return observation, reward, done, info
 
     # ----------------------------------------------------------------------
-    def _ge1t_obs(self):
+    def _get_obs(self):
         """
         Return robot's x, y, theta coordinates according to the format of `self.observation_space`
 
         :return:
         """
-        return self._agent_location.flatten()/np.array([self.map.shape[0], self.map.shape[1], np.pi])
+        return self._agent_location.flatten() / np.array([self.map.shape[0], self.map.shape[1], np.pi])
 
     def _get_1info(self):
         info = super()._get_info()
