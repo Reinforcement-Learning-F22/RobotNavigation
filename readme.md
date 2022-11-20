@@ -9,16 +9,15 @@ walls. The white circles indicates obstacles.
 We converted the original map to a grayscale version using computer vision techniques. Now the white space indicates 
 movable areas while the black circles within the wall indicates the obstacles. See the file `rl_map.ipynb` for details.
 
-<img src="data/world_with_robot.png" width="50%" alt="Image of World with Robot">
+<img src="data/download.png" width="50%" alt="Image of World with Robot">
 
-We design our agent (_robot_) to have a certain diameter with a pose (x, y, theta). The agent is indicated by the red 
-spot in the image above.
+We design our agent (_robot_) to have a certain diameter with a pose (x, y, theta) as can be seen in the image above.
 
 With this background information do we build our world having the following additional properties.
 1. Our observation space given by _x_, _y_ and _theta_ indicating the robot's current pose and the target position specified by its _x_ and _y_ coordinates. 
 2. _x_ and _y_ have a range of (0 to the maximum _x_ & _y_ coordinates of the world), while theta has a range of (`-pi` to `pi`)
 3. The action space is given by the linear (`v`) and angular velocity (`w`) of the robot.
-4. `v` and `w` are designed to be continous between _0_ to _1_ for `v` and _-1_ to _1_ for `w`.
+4. `v` and `w` are designed to be continous between _0_ to _1_ for `v` and _-1_ to _1_ for `w`. These based values are scaled by 20 - 100 for v and 3 for w, in some World implementations. 
 5. The initial robot pose and the target pose are initialized randomly within the movable area, with only two constraints.
    1. The robot pose and the target pose should not be equivalent
    2. The robot pose and the target pose should not be on the walls or obstacles.
