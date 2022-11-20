@@ -1,24 +1,29 @@
-## Introduction
-<img src="data/map.jpg" width="50%" alt="Image of World">
-
-Given the world shown above, navigate robot within the gray areas, within the bounds of the green pillars and black 
+# Robot Navigation using Reinforcement Learning
+This repo solves robot navigation using deep reinforcement learning. Two cases are implemented: discrete action space and continuous action space. The envrionment is inspired from turtlebot3 and is build from scratch in `world.py` file. Also, there are seperate files for DQN, DDPG, and TD3.
+## Environment
+There are two variants of the environments: one with obstalces and another without. The first variant is shown in the image below, where the robot navigates within the gray areas, within the bounds of the green pillars and black 
 walls. The white circles indicates obstacles. 
+<p align="center">
+<img src="data/map.jpg" width="30%"  alt="Image of World">
 
-<img src="data/gray.jpg" width="50%" alt="Gray Image of World">
 
 We converted the original map to a grayscale version using computer vision techniques. Now the white space indicates 
 movable areas while the black circles within the wall indicates the obstacles. See the file `rl_map.ipynb` for details.
-
-<img src="data/world_with_robot.png" width="50%" alt="Image of World with Robot">
+<p align="center">
+<img src="data/gray.jpg" width="30%" alt="Gray Image of World">
 
 We design our agent (_robot_) to have a certain diameter with a pose (x, y, theta). The agent is indicated by the red 
 spot in the image above.
+<p align="center">
+<img src="data/world_with_robot.png" width="30%" alt="Image of World with Robot">
 
-With this background information do we build our world having the following additional properties.
+
+
+With this background information, we build our world having the following additional properties.
 1. Our observation space given by _x_, _y_ and _theta_ indicating the robot's current pose and the target position specified by its _x_ and _y_ coordinates. 
 2. _x_ and _y_ have a range of (0 to the maximum _x_ & _y_ coordinates of the world), while theta has a range of (`-pi` to `pi`)
 3. The action space is given by the linear (`v`) and angular velocity (`w`) of the robot.
-4. `v` and `w` are designed to be continous between _0_ to _1_ for `v` and _-1_ to _1_ for `w`.
+4. `v` and `w` are designed to be continous between _0_ to _10_ for `v` and _-1_ to _1_ for `w`.
 5. The initial robot pose and the target pose are initialized randomly within the movable area, with only two constraints.
    1. The robot pose and the target pose should not be equivalent
    2. The robot pose and the target pose should not be on the walls or obstacles.
@@ -32,10 +37,25 @@ With this background information do we build our world having the following addi
    t = t0 + w   //wrapped to values between -pi to pi
    ```
    
+### Map Version
+As stated before, two map versions exist. The map shown in the preceeding sections (with obstalces), and another shown below, 
+(without obstacles).   
+
+The `env` can be created using the code fragment below, using environment without obstacles:
+```
+env = gym.make('bot3RLNav/World-v2', map_file="data/map01.jpg",
+             robot_file="data/robot.png")
+```
+<p align="center">
+<img src="data/map01.jpg" width="30%" alt="Image of World">
+
+Note: `World-v1` is the environment with obstalces and `World-v2` is the environment without obstacles.
+
 ### Reward System
 Walls and all obstacles are assigned a negative reward `-10`. The `step` method also sends a done signal when reward is 
 negative.
 Rewards for the navigable region are calculated in two sections as explained below.
+
 #### Distance Reward
 This calculates the distance between robot pose and target location and generates a reward from it.
 ```
@@ -138,16 +158,6 @@ while True:
       break
 ```
 
-### Map Version
-Two map versions exist. The map shown in the preceeding sections (with obstalces), and another shown below, 
-(without obstacles). The `env` can be created using the code fragment below.  
-Has been tested on `World-v1` and should work with this version and above, with all it's subclasses.
-```
-env = gym.make('bot3RLNav/World-v2', map_file="data/map01.jpg",
-             robot_file="data/robot.png")
-```
-<img src="data/map01.jpg" width="50%" alt="Image of World">
-
 ### Resetting
 To set fixed targets use the code block below. This feature means, the robot initial pose and the target location are 
 always reset to the same first poses that the preceeding `.reset()` call made.
@@ -158,6 +168,22 @@ env.reset(options={'reset': False})
 ```
 Works on `v0` and all the subclasses.
 
+## Methodology
+The network archeticture for the three networks:
+<img src="data/network_arch.drawio.png" width="100%" alt="Image of World">
+
+
+## Results
+### DQN:
+<img src="Results/robot.gif" width="80%"  />
+<img src="Results/DQN/DW2_ep100_iter800_tol10.png" width="80%"  />
+
+### DDPG:
+<img src="Results/DDPG/last_DDPG_roboNav_100_avg.png" width="80%"  />
+
+### TD3:
+<img src="Results/TD3/last_td3_roboNav_100_avg.png" width="80%"  />
+
 ## References
 1. [Custom Environment](https://www.gymlibrary.dev/content/environment_creation/)
 2. [Spaces](https://www.gymlibrary.dev/api/spaces/)
@@ -165,3 +191,6 @@ Works on `v0` and all the subclasses.
 4. [Markdown](https://daringfireball.net/projects/markdown/)
 5. [Create CV Window](https://docs.opencv.org/4.x/d7/dfc/group__highgui.html#ga5afdf8410934fd099df85c75b2e0888b)
 6. [CV imshow](https://docs.opencv.org/4.x/d7/dfc/group__highgui.html#ga453d42fe4cb60e5723281a89973ee563)
+7. [DDPG Network](https://keras.io/examples/rl/ddpg_pendulum/)
+8. [TD3 Network](https://towardsdatascience.com/td3-learning-to-run-with-ai-40dfc512f93)
+9. [Network Archeticture](https://arxiv.org/abs/1703.00420)
