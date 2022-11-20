@@ -33,7 +33,7 @@ def train():
     env = gym.make('bot3RLNav/DiscreteWorld-v5', map_file="data/map01.jpg",
                    robot_file="data/robot.png", learning_type=1)
     model = DQN("MlpPolicy", env, verbose=1, learning_rate=0.001, gamma=0.1, exploration_fraction=0.8)
-    model.learn(total_timesteps=200000, log_interval=4)
+    model.learn(total_timesteps=80000, log_interval=5)
 
     obs = env.reset()
     name = "bot3"
@@ -78,14 +78,18 @@ def train_td3():
     env = gym.make('bot3RLNav/World-v5', map_file="data/map01.jpg",
                    robot_file="data/robot.png")
 
-    model = TD3("MlpPolicy", env, verbose=1, learning_rate=0.01, gamma=0.1)
-    model.learn(total_timesteps=10000, log_interval=5)
+    # The noise objects for TD3
+    n_actions = env.action_space.shape[-1]
+    action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
+
+    model = TD3("MlpPolicy", env, action_noise=action_noise, verbose=1, learning_rate=0.001, gamma=0.1)
+    model.learn(total_timesteps=8000, log_interval=100)
 
     obs = env.reset()
     name = "bot3"
     cv2.namedWindow(name, cv2.WINDOW_NORMAL)
-    rate = 100  # frame rate in ms
-    count = 500
+    rate = 200  # frame rate in ms
+    count = 100
     while count > 0:
         frame = env.render(mode="rgb_array")
         cv2.imshow("bot3", frame)
@@ -105,12 +109,12 @@ def train_td3():
         count -= 1
     print()
     env1 = Monitor(env)
-    o = evaluate_policy(model, env1, n_eval_episodes=10, render=False)
-    print(o)
+    # o = evaluate_policy(model, env1, n_eval_episodes=10, render=False)
+    # print(o)
     env.close()
 
 
 if __name__ == '__main__':
     # check()
-    # train()
-    train_td3()
+    train()
+    # train_td3()
