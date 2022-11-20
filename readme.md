@@ -2,17 +2,15 @@
 This repo solves robot navigation using deep reinforcement learning. Two cases are implemented: discrete action space and continuous action space. The envrionment is inspired from turtlebot3 and is build from scratch in `world.py` file. Also, there are seperate files for DQN, DDPG, and TD3.
 ## Environment
 There are two variants of the environments: one with obstalces and another without. The first variant is shown in the image below, where the robot navigates within the gray areas, within the bounds of the green pillars and black 
-walls. The white circles indicates obstacles. 
+walls. The white circles indicates obstacles. Also
 <p align="center">
 <img src="data/map.jpg" width="30%"  alt="Image of World">
 
 
 We converted the original map to a grayscale version using computer vision techniques. Now the white space indicates 
 movable areas while the black circles within the wall indicates the obstacles. See the file `rl_map.ipynb` for details.
-
-<img src="data/download.png" width="50%" alt="Image of World with Robot">
-
-We design our agent (_robot_) to have a certain diameter with a pose (x, y, theta) as can be seen in the image above.
+<p align="center">
+<img src="data/gray.jpg" width="30%" alt="Image of World with Robot">
 
 With this background information, we build our world having the following additional properties.
 1. Our observation space given by _x_, _y_ and _theta_ indicating the robot's current pose and the target position specified by its _x_ and _y_ coordinates. 
@@ -36,7 +34,7 @@ With this background information, we build our world having the following additi
 As stated before, two map versions exist. The map shown in the preceeding sections (with obstalces), and another shown below, 
 (without obstacles).   
 
-The `env` can be created using the code fragment below, using environment without obstacles:
+The `env` can be created using the code fragment below,which generate the environment without obstacles:
 ```
 env = gym.make('bot3RLNav/World-v2', map_file="data/map01.jpg",
              robot_file="data/robot.png")
