@@ -168,7 +168,7 @@ The network archeticture for the three networks:
 
 ## Results
 ### DQN:
-<img src="Results/robot.gif" width="80%"  />
+<img src="Results/robot_crop.gif" width="80%"  />
 <img src="Results/DQN/DW2_ep100_iter800_tol10.png" width="80%"  />
 
 ### DDPG:
